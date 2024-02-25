@@ -40,5 +40,39 @@ public class Player
     }
 }
 
+public class Cell
+{
+    public string Occupant { get; set; }
+
+    public Cell(string occupant)
+    {
+        Occupant = occupant;
+    }
+}
+
+public class Board
+{
+    private Cell[,] grid;
+    public Board()
+    {
+        grid = new Cell[6, 6];
+        for (int x = 0; x < 6; x++)
+        {
+            for (int y = 0; y < 6; y++)
+            {
+                grid[x, y] = new Cell("-");
+            }
+        }
+
+        grid[0, 0] = new Cell("P1");
+        grid[5, 5] = new Cell("P2");
+
+        Random random = new Random();
+        PlaceRandomElements("G", random, 10);
+        PlaceRandomElements("O", random, 5);
+    }
+
+
+
 
 
