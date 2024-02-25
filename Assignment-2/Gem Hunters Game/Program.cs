@@ -128,6 +128,72 @@ public class Board
     }
 }
 
+public class Game
+{
+    private Board board;
+    private Player player1;
+    private Player player2;
+    private Player currentTurn;
+    private int totalTurns;
+
+    public Game()
+    {
+        board = new Board();
+        player1 = new Player("P1", new Position(0, 0));
+        player2 = new Player("P2", new Position(5, 5));
+        currentTurn = player1;
+        totalTurns = 0;
+    }
+
+    public void Start()
+    {
+        while (!IsGameOver())
+        {
+            board.Display();
+            Console.WriteLine($"{currentTurn.Name}'s turn. Enter move (U, D, L, R): ");
+            char move = Console.ReadKey().KeyChar;
+            Console.WriteLine();
+
+            Position oldPosition = new Position(currentTurn.Position.X, currentTurn.Position.Y);
+            if (board.IsValidMove(currentTurn, move))
+            {
+                board.UpdatePlayerPosition(currentTurn, oldPosition);
+                currentTurn.Move(move);
+                board.CollectGem(currentTurn);
+                board.UpdatePlayerPosition(currentTurn, new Position(currentTurn.Position.X, currentTurn.Position.Y));
+            }
+            else
+            {
+                Console.WriteLine("Invalid move. Try again.");
+            }
+            SwitchTurn();
+        }
+        AnnounceWinner();
+    }
+
+    private void SwitchTurn()
+    {
+        currentTurn = currentTurn == player1 ? player2 : player1;
+        totalTurns++;
+    }
+
+    private bool IsGameOver()
+    {
+        return totalTurns >= 30;
+    }
+
+    private void AnnounceWinner()
+    {
+        if (player1.GemCount > player2.GemCount)
+            Console.WriteLine("Player 1 wins with " + player1.GemCount + " gems!");
+        else if (player2.GemCount > player1.GemCount)
+            Console.WriteLine("Player 2 wins with " + player2.GemCount + " gems!");
+        else
+            Console.WriteLine("It's a tie! Both players collected " + player1.GemCount + " gems.");
+    }
+}
+
+
 
 
 
