@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 public class Position
 {
@@ -62,7 +62,7 @@ public class Gem : GameElement
 
     public override void Display()
     {
-        Console.Write("G");
+        Console.Write(" G ");
     }
 }
 
@@ -72,7 +72,7 @@ public class Obstacle : GameElement
 
     public override void Display()
     {
-        Console.Write("O");
+        Console.Write(" O ");
     }
 }
 
@@ -86,14 +86,14 @@ public class Board
         InitializeBoard();
     }
 
-    
+
     public class Cell : GameElement
     {
         public Cell(int x, int y) : base(x, y) { }
 
         public override void Display()
         {
-            Console.Write("-");
+            Console.Write(" - ");
         }
     }
 
@@ -107,8 +107,8 @@ public class Board
             }
         }
 
-        grid[0, 0] = new Player("P1", 0, 0);
-        grid[5, 5] = new Player("P2", 5, 5);
+        grid[0, 0] = new Player("p1 ", 0, 0);
+        grid[5, 5] = new Player(" p2", 5, 5);
 
         Random random = new Random();
         PlaceRandomElements(typeof(Gem), random, 10);
@@ -189,8 +189,8 @@ public class Game
     public Game()
     {
         board = new Board();
-        player1 = new Player("P1", 0, 0);
-        player2 = new Player("P2", 5, 5);
+        player1 = new Player("p1 ", 0, 0);
+        player2 = new Player(" P2", 5, 5);
         currentTurn = player1;
         totalTurns = 0;
     }
