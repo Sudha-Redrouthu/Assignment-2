@@ -1,4 +1,5 @@
 ﻿using System;
+
 public class Position
 {
     public int X { get; private set; }
@@ -11,18 +12,28 @@ public class Position
     }
 }
 
-public class Player
+public abstract class GameElement
+{
+    public Position Position { get; protected set; }
+
+    public GameElement(int x, int y)
+    {
+        Position = new Position(x, y);
+    }
+
+    public abstract void Display();
+}
+
+public class Player : GameElement
 {
     public string Name { get; private set; }
-    public Position Position { get; private set; }
     public int GemCount { get; private set; }
 
-    public Player(string name, Position startPosition)
+    public Player(string name, int x, int y) : base(x, y)
     {
         Name = name;
-        Position = startPosition;
-        GemCount = 0;
     }
+
     public void Move(char direction)
     {
         switch (direction)
@@ -38,40 +49,75 @@ public class Player
     {
         GemCount++;
     }
+
+    public override void Display()
+    {
+        Console.Write(Name);
+    }
 }
 
-public class Cell
+public class Gem : GameElement
 {
-    public string Occupant { get; set; }
+    public Gem(int x, int y) : base(x, y) { }
 
-    public Cell(string occupant)
+    public override void Display()
     {
-        Occupant = occupant;
+        Console.Write(" G ");
+    }
+}
+
+public class Obstacle : GameElement
+{
+    public Obstacle(int x, int y) : base(x, y) { }
+
+    public override void Display()
+    {
+        Console.Write(" O ");
     }
 }
 
 public class Board
 {
-    private Cell[,] grid;
+    private GameElement[,] grid;
+
     public Board()
     {
-        grid = new Cell[6, 6];
+        grid = new GameElement[6, 6];
+        InitializeBoard();
+    }
+
+
+    public class Cell : GameElement
+    {
+        public Cell(int x, int y) : base(x, y) { }
+
+        public override void Display()
+        {
+            Console.Write(" - ");
+        }
+    }
+
+    private void InitializeBoard()
+    {
         for (int x = 0; x < 6; x++)
         {
             for (int y = 0; y < 6; y++)
             {
-                grid[x, y] = new Cell("-");
+                grid[x, y] = new Cell(x, y); // Corrected: Passing x and y coordinates
             }
         }
 
-        grid[0, 0] = new Cell("P1");
-        grid[5, 5] = new Cell("P2");
+        grid[0, 0] = new Player("p1 ", 0, 0);
+        grid[5, 5] = new Player(" p2", 5, 5);
 
         Random random = new Random();
-        PlaceRandomElements("G", random, 10);
-        PlaceRandomElements("O", random, 5);
+        PlaceRandomElements(typeof(Gem), random, 10);
+        PlaceRandomElements(typeof(Obstacle), random, 5);
     }
-    private void PlaceRandomElements(string element, Random random, int count)
+
+
+
+    private void PlaceRandomElements(Type elementType, Random random, int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -80,9 +126,9 @@ public class Board
             {
                 x = random.Next(6);
                 y = random.Next(6);
-            } while (grid[x, y].Occupant != "-");
+            } while (grid[x, y] is not Cell || grid[x, y] is Player);
 
-            grid[x, y] = new Cell(element);
+            grid[x, y] = (GameElement)Activator.CreateInstance(elementType, x, y);
         }
     }
 
@@ -92,7 +138,11 @@ public class Board
         {
             for (int x = 0; x < grid.GetLength(0); x++)
             {
-                Console.Write(grid[x, y].Occupant + " ");
+                if (grid[x, y] != null)
+                    grid[x, y].Display();
+                else
+                    Console.Write("-");
+                Console.Write(" ");
             }
             Console.WriteLine();
         }
@@ -109,22 +159,22 @@ public class Board
             case 'R': newX++; break;
             default: return false;
         }
-        return newX >= 0 && newX < 6 && newY >= 0 && newY < 6 && grid[newX, newY].Occupant != "O";
+        return newX >= 0 && newX < 6 && newY >= 0 && newY < 6 && !(grid[newX, newY] is Obstacle);
     }
 
     public void CollectGem(Player player)
     {
-        if (grid[player.Position.X, player.Position.Y].Occupant == "G")
+        if (grid[player.Position.X, player.Position.Y] is Gem)
         {
             player.CollectGem();
-            grid[player.Position.X, player.Position.Y].Occupant = "-";
+            grid[player.Position.X, player.Position.Y] = new Cell(player.Position.X, player.Position.Y);
         }
     }
 
     public void UpdatePlayerPosition(Player player, Position oldPosition)
     {
-        grid[oldPosition.X, oldPosition.Y].Occupant = "-";
-        grid[player.Position.X, player.Position.Y].Occupant = player.Name;
+        grid[oldPosition.X, oldPosition.Y] = new Cell(player.Position.X, player.Position.Y);
+        grid[player.Position.X, player.Position.Y] = player;
     }
 }
 
@@ -139,8 +189,8 @@ public class Game
     public Game()
     {
         board = new Board();
-        player1 = new Player("P1", new Position(0, 0));
-        player2 = new Player("P2", new Position(5, 5));
+        player1 = new Player("p1 ", 0, 0);
+        player2 = new Player(" P2", 5, 5);
         currentTurn = player1;
         totalTurns = 0;
     }
@@ -185,11 +235,11 @@ public class Game
     private void AnnounceWinner()
     {
         if (player1.GemCount > player2.GemCount)
-            Console.WriteLine("Player 1 wins with " + player1.GemCount + " gems!");
+            Console.WriteLine($"{player1.Name} wins with {player1.GemCount} gems!");
         else if (player2.GemCount > player1.GemCount)
-            Console.WriteLine("Player 2 wins with " + player2.GemCount + " gems!");
+            Console.WriteLine($"{player2.Name} wins with {player2.GemCount} gems!");
         else
-            Console.WriteLine("It's a tie! Both players collected " + player1.GemCount + " gems.");
+            Console.WriteLine("It's a tie!");
     }
 }
 
@@ -201,11 +251,3 @@ class Program
         game.Start();
     }
 }
-
-
-
-
-
-
-
-
