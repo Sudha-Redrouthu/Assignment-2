@@ -71,6 +71,63 @@ public class Board
         PlaceRandomElements("G", random, 10);
         PlaceRandomElements("O", random, 5);
     }
+    private void PlaceRandomElements(string element, Random random, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            int x, y;
+            do
+            {
+                x = random.Next(6);
+                y = random.Next(6);
+            } while (grid[x, y].Occupant != "-");
+
+            grid[x, y] = new Cell(element);
+        }
+    }
+
+    public void Display()
+    {
+        for (int y = 0; y < grid.GetLength(1); y++)
+        {
+            for (int x = 0; x < grid.GetLength(0); x++)
+            {
+                Console.Write(grid[x, y].Occupant + " ");
+            }
+            Console.WriteLine();
+        }
+    }
+
+    public bool IsValidMove(Player player, char direction)
+    {
+        int newX = player.Position.X, newY = player.Position.Y;
+        switch (direction)
+        {
+            case 'U': newY--; break;
+            case 'D': newY++; break;
+            case 'L': newX--; break;
+            case 'R': newX++; break;
+            default: return false;
+        }
+        return newX >= 0 && newX < 6 && newY >= 0 && newY < 6 && grid[newX, newY].Occupant != "O";
+    }
+
+    public void CollectGem(Player player)
+    {
+        if (grid[player.Position.X, player.Position.Y].Occupant == "G")
+        {
+            player.CollectGem();
+            grid[player.Position.X, player.Position.Y].Occupant = "-";
+        }
+    }
+
+    public void UpdatePlayerPosition(Player player, Position oldPosition)
+    {
+        grid[oldPosition.X, oldPosition.Y].Occupant = "-";
+        grid[player.Position.X, player.Position.Y].Occupant = player.Name;
+    }
+}
+
 
 
 
